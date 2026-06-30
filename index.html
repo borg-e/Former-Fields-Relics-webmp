@@ -1,283 +1,256 @@
 <!DOCTYPE html>
+<html lang="en" style="">
+<head>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+  <title>Former Fields System</title>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <link href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" rel="stylesheet"/>
+  <link href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;500;700&amp;family=Inter:wght@400;500;700&amp;family=Public+Sans:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+  <script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script data-purpose="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "outline": "#737784",
+            "surface-dim": "#dbdadb",
+            "on-surface": "#1b1c1d",
+            "surface-container-high": "#e9e8e9",
+            "on-tertiary-container": "#4a3f00",
+            "inverse-surface": "#303031",
+            "primary-container": "#3366cc",
+            "error-container": "#ffdad6",
+            "surface-container-low": "#f5f3f4",
+            "secondary-fixed": "#dfe3e8",
+            "on-secondary-fixed-variant": "#42474b",
+            "surface": "#faf9fa",
+            "tertiary-fixed-dim": "#dcc661",
+            "tertiary-fixed": "#f9e37a",
+            "surface-container-highest": "#e3e2e3",
+            "on-secondary-container": "#606569",
+            "surface-variant": "#e3e2e3",
+            "background": "#faf9fa",
+            "surface-container-lowest": "#ffffff",
+            "on-tertiary-fixed": "#211b00",
+            "on-secondary-fixed": "#171c20",
+            "primary-fixed": "#d9e2ff",
+            "on-primary": "#ffffff",
+            "on-primary-container": "#e7ebff",
+            "primary": "#094cb2",
+            "outline-variant": "#c3c6d5",
+            "on-primary-fixed-variant": "#00419d",
+            "on-surface-variant": "#434653",
+            "error": "#ba1a1a",
+            "tertiary-container": "#bfab49",
+            "inverse-primary": "#b1c5ff",
+            "surface-bright": "#faf9fa",
+            "secondary": "#5a5f63",
+            "inverse-on-surface": "#f2f0f1",
+            "secondary-container": "#dfe3e8",
+            "on-secondary": "#ffffff",
+            "on-primary-fixed": "#001946",
+            "on-background": "#1b1c1d",
+            "on-error-container": "#93000a",
+            "tertiary": "#6d5e00",
+            "surface-container": "#efedee",
+            "secondary-fixed-dim": "#c2c7cc",
+            "primary-fixed-dim": "#b1c5ff",
+            "on-error": "#ffffff",
+            "surface-tint": "#2259bf",
+            "on-tertiary": "#ffffff",
+            "on-tertiary-fixed-variant": "#524600"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          "fontFamily": {
+            "body-lg": ["Inter"],
+            "label-md": ["Public Sans"],
+            "headline-md": ["Noto Serif"],
+            "headline-lg": ["Noto Serif"],
+            "body-md": ["Inter"]
+          }
+        },
+      },
+    }
+  </script>
+  <style data-purpose="base-styles">
+    body { margin: 0; padding: 0; font-family: 'Inter', sans-serif; color: #1b1c1d; overflow: hidden; background: #faf9fa; }
+    #map { position: absolute; top: 0; left: 0; height: 100vh; width: 100vw; z-index: 0; }
+  </style>
+  <style data-purpose="ui-elements">
+    /* Clean Custom UI Elements */
+    .color-box { width: 16px; height: 16px; margin-right: 12px; cursor: pointer; transition: opacity 0.2s, transform 0.1s; border: 1px solid rgba(0,0,0,0.1); flex-shrink: 0; border-radius: 0; }
+    .color-box.disabled { opacity: 0.2; }
+    .color-box:hover { transform: scale(1.1); }
+    .legend-text { cursor: pointer; flex-grow: 1; transition: color 0.2s; font-size: 14px; color: #434653; font-family: 'Public Sans', sans-serif;}
+    .legend-text:hover { color: #1b1c1d; }
+    
+    .legend-item { display: flex; align-items: center; margin: 8px 0; padding: 4px; transition: background 0.2s; }
+    .legend-item:hover { background: #f5f3f4; }
+    
+    /* Panneau Définition */
+    #definition-panel { 
+        top: 20px; right: -400px; width: 350px; max-height: calc(100vh - 40px);
+        background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(4px);
+        z-index: 3000; position: fixed; transition: right 0.4s ease; 
+        overflow-y: auto; border: 1px solid #e3e2e3; border-radius: 0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    #definition-panel.open { right: 20px; }
+    .def-content { padding: 24px; opacity: 0; transition: opacity 0.3s; }
+    .def-title { font-size: 18px; font-family: 'Noto Serif', serif; font-weight: 600; color: #1b1c1d; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #e3e2e3; }
+    .def-para { font-size: 14px; line-height: 1.6; color: #434653; font-family: 'Inter', sans-serif;}
+    .close-def { position: absolute; top: 16px; right: 16px; cursor: pointer; color: #737784; font-size: 20px; transition: color 0.2s; line-height: 1; }
+    .close-def:hover { color: #1b1c1d; }
 
-<html lang="en" style=""><head><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<title>Former Fields System</title>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<link href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" rel="stylesheet"/>
-<link href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;500;700&amp;family=Inter:wght@400;500;700&amp;family=Public+Sans:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
-<script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<script>
-  tailwind.config = {
-    darkMode: "class",
-    theme: {
-      extend: {
-        "colors": {
-                "outline": "#737784",
-                "surface-dim": "#dbdadb",
-                "on-surface": "#1b1c1d",
-                "surface-container-high": "#e9e8e9",
-                "on-tertiary-container": "#4a3f00",
-                "inverse-surface": "#303031",
-                "primary-container": "#3366cc",
-                "error-container": "#ffdad6",
-                "surface-container-low": "#f5f3f4",
-                "secondary-fixed": "#dfe3e8",
-                "on-secondary-fixed-variant": "#42474b",
-                "surface": "#faf9fa",
-                "tertiary-fixed-dim": "#dcc661",
-                "tertiary-fixed": "#f9e37a",
-                "surface-container-highest": "#e3e2e3",
-                "on-secondary-container": "#606569",
-                "surface-variant": "#e3e2e3",
-                "background": "#faf9fa",
-                "surface-container-lowest": "#ffffff",
-                "on-tertiary-fixed": "#211b00",
-                "on-secondary-fixed": "#171c20",
-                "primary-fixed": "#d9e2ff",
-                "on-primary": "#ffffff",
-                "on-primary-container": "#e7ebff",
-                "primary": "#094cb2",
-                "outline-variant": "#c3c6d5",
-                "on-primary-fixed-variant": "#00419d",
-                "on-surface-variant": "#434653",
-                "error": "#ba1a1a",
-                "tertiary-container": "#bfab49",
-                "inverse-primary": "#b1c5ff",
-                "surface-bright": "#faf9fa",
-                "secondary": "#5a5f63",
-                "inverse-on-surface": "#f2f0f1",
-                "secondary-container": "#dfe3e8",
-                "on-secondary": "#ffffff",
-                "on-primary-fixed": "#001946",
-                "on-background": "#1b1c1d",
-                "on-error-container": "#93000a",
-                "tertiary": "#6d5e00",
-                "surface-container": "#efedee",
-                "secondary-fixed-dim": "#c2c7cc",
-                "primary-fixed-dim": "#b1c5ff",
-                "on-error": "#ffffff",
-                "surface-tint": "#2259bf",
-                "on-tertiary": "#ffffff",
-                "on-tertiary-fixed-variant": "#524600"
-        },
-        "borderRadius": {
-                "DEFAULT": "0.125rem",
-                "lg": "0.25rem",
-                "xl": "0.5rem",
-                "full": "0.75rem"
-        },
-        "spacing": {
-                "gutter": "16px",
-                "base": "8px",
-                "margin-desktop": "32px",
-                "margin-mobile": "16px",
-                "container-max": "1200px"
-        },
-        "fontFamily": {
-                "body-lg": [
-                        "Inter"
-                ],
-                "label-md": [
-                        "Public Sans"
-                ],
-                "headline-md": [
-                        "Noto Serif"
-                ],
-                "headline-lg": [
-                        "Noto Serif"
-                ],
-                "body-md": [
-                        "Inter"
-                ]
-        },
-        "fontSize": {
-                "body-lg": [
-                        "18px",
-                        {
-                                "lineHeight": "28px",
-                                "fontWeight": "400"
-                        }
-                ],
-                "label-md": [
-                        "14px",
-                        {
-                                "lineHeight": "20px",
-                                "fontWeight": "500"
-                        }
-                ],
-                "headline-md": [
-                        "24px",
-                        {
-                                "lineHeight": "32px",
-                                "fontWeight": "600"
-                        }
-                ],
-                "headline-lg": [
-                        "32px",
-                        {
-                                "lineHeight": "40px",
-                                "fontWeight": "700"
-                        }
-                ],
-                "body-md": [
-                        "16px",
-                        {
-                                "lineHeight": "24px",
-                                "fontWeight": "400"
-                        }
-                ]
-        }
-}
-    },
-  }
-</script>
-<style>
-        body { margin: 0; padding: 0; font-family: 'Inter', sans-serif; color: #1b1c1d; overflow: hidden; background: #faf9fa; }
-        
-        #map { position: absolute; top: 0; left: 0; height: 100vh; width: 100vw; z-index: 0; }
-        
-        /* Clean Custom UI Elements */
-        .color-box { width: 16px; height: 16px; margin-right: 12px; cursor: pointer; transition: opacity 0.2s, transform 0.1s; border: 1px solid rgba(0,0,0,0.1); flex-shrink: 0; border-radius: 0; }
-        .color-box.disabled { opacity: 0.2; }
-        .color-box:hover { transform: scale(1.1); }
-        .legend-text { cursor: pointer; flex-grow: 1; transition: color 0.2s; font-size: 14px; color: #434653; font-family: 'Public Sans', sans-serif;}
-        .legend-text:hover { color: #1b1c1d; }
-        
-        .legend-item { display: flex; align-items: center; margin: 8px 0; padding: 4px; transition: background 0.2s; }
-        .legend-item:hover { background: #f5f3f4; }
-        
-        /* Panneau Définition */
-        #definition-panel { 
-            top: 20px; right: -400px; width: 350px; max-height: calc(100vh - 40px);
-            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(4px);
-            z-index: 3000; position: fixed; transition: right 0.4s ease; 
-            overflow-y: auto; border: 1px solid #e3e2e3; border-radius: 0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-        #definition-panel.open { right: 20px; }
-        .def-content { padding: 24px; opacity: 0; transition: opacity 0.3s; }
-        .def-title { font-size: 18px; font-family: 'Noto Serif', serif; font-weight: 600; color: #1b1c1d; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #e3e2e3; }
-        .def-para { font-size: 14px; line-height: 1.6; color: #434653; font-family: 'Inter', sans-serif;}
-        .close-def { position: absolute; top: 16px; right: 16px; cursor: pointer; color: #737784; font-size: 20px; transition: color 0.2s; line-height: 1; }
-        .close-def:hover { color: #1b1c1d; }
+    /* Panels Info */
+    #info-panel {  
+        position: absolute; top: 20px; right: 20px; width: 320px; display: none; overflow-y: auto; max-height: calc(100vh - 80px);
+        background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(4px); border: 1px solid #e3e2e3; border-radius: 0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        z-index: 2000;
+    }
+    .info-vignette { height: 4px; width: 100%; background: #094cb2; }
+    .info-body { padding: 20px; }
+    .info-title { font-size: 16px; font-family: 'Noto Serif', serif; font-weight: 600; color: #1b1c1d; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid #efedee; }
+    .info-label { color: #606569; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 12px; font-weight: 500; font-family: 'Public Sans', sans-serif;}
+    .info-value { font-size: 14px; color: #434653; margin-top: 4px; font-family: 'Inter', sans-serif;}
+    .info-auteur-lien { color: #094cb2; font-weight: 500; text-decoration: none; transition: color 0.2s ease; }
+    .info-auteur-lien:hover { color: #00419d; text-decoration: underline; }
 
-        /* Panels Info */
-        #info-panel {  
-            position: absolute; top: 20px; right: 20px; width: 320px; display: none; overflow-y: auto; max-height: calc(100vh - 80px);
-            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(4px); border: 1px solid #e3e2e3; border-radius: 0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            z-index: 2000;
-        }
-        .info-vignette { height: 4px; width: 100%; background: #094cb2; }
-        .info-body { padding: 20px; }
-        .info-title { font-size: 16px; font-family: 'Noto Serif', serif; font-weight: 600; color: #1b1c1d; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid #efedee; }
-        .info-label { color: #606569; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 12px; font-weight: 500; font-family: 'Public Sans', sans-serif;}
-        .info-value { font-size: 14px; color: #434653; margin-top: 4px; font-family: 'Inter', sans-serif;}
-        .info-auteur-lien { color: #094cb2; font-weight: 500; text-decoration: none; transition: color 0.2s ease; }
-        .info-auteur-lien:hover { color: #00419d; text-decoration: underline; }
-
-        /* Clusters */
-        .cluster-pie { background: none; border: none; }
-        .cluster-label { position: absolute; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; color: #1b1c1d; font-weight: 600; font-size: 12px; z-index: 10; text-shadow: 0 0 2px rgba(255,255,255,0.8); }
-        
-        * { -webkit-tap-highlight-color: transparent !important; outline: none !important; }
-        
-        /* Range slider styling */
-        input[type=range] {
-            -webkit-appearance: none;
-            width: 100%;
-            background: transparent;
-        }
-        input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            height: 16px; width: 16px;
-            border-radius: 0;
-            background: #094cb2;
-            cursor: pointer;
-            margin-top: -6px;
+    /* Range slider styling */
+    input[type=range] {
+        -webkit-appearance: none;
+        width: 100%;
+        background: transparent;
+    }
+    input[type=range]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        height: 16px; width: 16px;
+        border-radius: 0;
+        background: #094cb2;
+        cursor: pointer;
+        margin-top: -6px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+    input[type=range]::-webkit-slider-runnable-track {
+        width: 100%;
+        height: 4px;
+        cursor: pointer;
+        background: #dfe3e8;
+        border-radius: 0;
+    }
+  </style>
+  <style data-purpose="leaflet-overrides">
+    * { -webkit-tap-highlight-color: transparent !important; outline: none !important; }
+    
+    .leaflet-control-container .leaflet-bottom.leaflet-left { margin-left: 0; }
+    
+    .leaflet-control-layers {
+        border-radius: 0 !important;
+        border: 1px solid #e3e2e3 !important;
+        font-family: 'Public Sans', sans-serif !important;
+    }
+    .leaflet-bar {
+        border-radius: 0 !important;
+        border: 1px solid #e3e2e3 !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
+    }
+    .leaflet-bar a {
+        border-radius: 0 !important;
+        color: #434653 !important;
+    }
+    .leaflet-bar a:hover {
+        background-color: #f5f3f4 !important;
+        color: #1b1c1d !important;
+    }
+    
+    .analysis-expanded {
+        position: fixed !important;
+        width: 50vw !important;
+        height: 50vh !important;
+        top: 50% !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        z-index: 9999 !important;
+        max-height: none !important;
+    }
+    
+    .analysis-expanded #chart-wrapper {
+        height: calc(100% - 100px) !important;
+    }
+     .diamond-marker {
+            width: 9px;
+            height: 9px;
+            transform: rotate(45deg);
+            border: 0.5px solid #ffffff;
+            transition: transform 0.2s ease, opacity 0.2s ease;
+            box-sizing: border-box;
+            opacity: 1;
             box-shadow: 0 1px 3px rgba(0,0,0,0.3);
         }
-        input[type=range]::-webkit-slider-runnable-track {
-            width: 100%;
-            height: 4px;
-            cursor: pointer;
-            background: #dfe3e8;
-            border-radius: 0;
+        .leaflet-marker-icon.custom-diamond-wrapper {
+            background: none;
+            border: none;
         }
-        
-        .leaflet-control-container .leaflet-bottom.leaflet-left {
-            /* Remove offset for new layout */
-            margin-left: 0;
-        }
-        
-        .leaflet-control-layers {
-            border-radius: 0 !important;
-            border: 1px solid #e3e2e3 !important;
-            font-family: 'Public Sans', sans-serif !important;
-        }
-        .leaflet-bar {
-            border-radius: 0 !important;
-            border: 1px solid #e3e2e3 !important;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
-        }
-        .leaflet-bar a {
-            border-radius: 0 !important;
-            color: #434653 !important;
-        }
-        .leaflet-bar a:hover {
-            background-color: #f5f3f4 !important;
-            color: #1b1c1d !important;
-        }
-        
-        .analysis-expanded {
-            position: fixed !important;
-            width: 50vw !important;
-            height: 50vh !important;
-            top: 50% !important;
-            left: 50% !important;
-            transform: translate(-50%, -50%) !important;
-            z-index: 9999 !important;
-            max-height: none !important;
-        }
-        
-        .analysis-expanded #chart-wrapper {
-            height: calc(100% - 100px) !important;
-        }
-    </style>
+
+  </style>
 </head>
 <body class="">
-<!-- Map Container -->
+    <svg width="0" height="0" style="position:absolute; z-index:-1;">
+  <defs>
+    <pattern id="stone-wall-pattern" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect width="8" height="8" fill="transparent" />
+      <line x1="0" y1="0" x2="0" y2="8" stroke="#BFB8B2" stroke-width="5" />
+    </pattern>
+  </defs>
+</svg>
+<div class="fixed inset-0 z-[4000] flex items-center justify-center bg-black/40 backdrop-blur-sm" id="welcome-modal">
+<div class="bg-white/95 backdrop-blur-sm p-8 max-w-2xl w-full mx-4 shadow-xl border border-surface-variant rounded-none relative">
+<h2 class="font-headline-lg text-2xl mb-4 text-on-surface">Former Fields Relicts: European synthesis Map</h2>
+<p class="font-body-md text-on-surface-variant mb-6 text-sm leading-relaxed">
+        Reconstructing the history of land use, and thereby assessing the ecological legacies associated with past practices, is a key prerequisite for effective environmental governance (Ellis, 2021). Former agricultural landforms —often organized within former field systems (FFS)— are widely preserved across Europe. Among the most common micro-topographies described in the literature are lynchets, terraces, ridge-and-furrow systems, stone walls and headland ridges. LiDAR has enabled numerous regional studies on landscape history and heritage, including vast areas now covered by forest. On the other hand, geoarchaeological surveys have provided an initial, though still incomplete, chronological framework. This study encompasses the temperate transition zone where oceanic and continental influences met. The scope also aims to follow the historical diffusion of the plow, tracing its path from its Central European origins to Alsace and Lorraine (Haudricourt and Delamarre, 1988). Furthermore, it extends to the North-Western French openfields, spanning from the Paris Basin to the Beauce region, to ensure a comprehensive analysis of these traditional agricultural landscapes.
+</p>
+<div class="flex justify-end">
+<button class="bg-primary text-on-primary px-6 py-2 uppercase tracking-wide text-sm font-label-md hover:bg-on-primary-fixed-variant transition-colors rounded-none" onclick="document.getElementById('welcome-modal').style.display='none'">
+          Explore Map
+        </button>
+</div>
+</div>
+</div>
 <div id="map"></div>
-<!-- Top Left Header Overlay -->
 <div class="absolute top-4 left-4 bg-white/95 backdrop-blur-sm border border-surface-variant shadow-sm z-[1000] p-4 flex flex-col font-sans max-w-sm rounded-none">
 <h1 class="text-on-surface uppercase tracking-wide leading-tight font-sans">Former Fields Relicts in Central Temperate Europe</h1>
 </div>
-<!-- Floating Side Panel for Analysis & Filters -->
 <div class="absolute top-24 left-4 w-[350px] bg-white/95 backdrop-blur-sm border border-surface-variant shadow-sm z-[1000] flex flex-col font-sans max-h-[calc(100vh-120px)] rounded-none" id="sidebar-panel">
 <div class="flex-1 overflow-y-auto px-6 py-5 flex flex-col gap-8">
-<!-- Legend / Filters -->
 <div>
 <div id="legend">
 <div class="legend-item">
-<span class="color-box" onclick="toggleFilter('headland_ridges', event)" style="background:#f2e085"></span>
+<span class="color-box" onclick="toggleFilter('headland_ridges', event)" style="background:#ebdb84"></span>
 <span class="legend-text" onclick="showDefinition('headland_ridges')">Headland ridges</span>
 </div>
 <div class="legend-item">
-<span class="color-box" onclick="toggleFilter('ridge_and_furrows', event)" style="background:#a8d5a2"></span>
+<span class="color-box" onclick="toggleFilter('ridge_and_furrows', event)" style="background:#7aac73"></span>
 <span class="legend-text" onclick="showDefinition('ridge_and_furrows')">Ridge and furrows</span>
 </div>
 <div class="legend-item">
-<span class="color-box" onclick="toggleFilter('lynchets_terraces', event)" style="background:#8bb9e0"></span>
+<span class="color-box" onclick="toggleFilter('lynchets_terraces', event)" style="background:#a4b8ca"></span>
 <span class="legend-text" onclick="showDefinition('lynchets_terraces')">Lynchets/Terraces</span>
 </div>
 <div class="legend-item">
-<span class="color-box" onclick="toggleFilter('stone_wall', event)" style="background:#8e7fbd"></span>
-<span class="legend-text" onclick="showDefinition('stone_wall')">Stone walls and heaps</span>
+  <span class="color-box" onclick="toggleFilter('stone_wall', event)" style="background: repeating-linear-gradient(-45deg, transparent, transparent 2px, #aaa7b8 2px, #afabbe 4px); border-color: #6c5da3;"></span>
+  <span class="legend-text" onclick="showDefinition('stone_wall')">Stone walls and heaps</span>
 </div>
 <div class="legend-item">
 <span class="color-box" onclick="toggleFilter('undetermined_ffr', event)" style="background:#d68a9d"></span>
@@ -290,7 +263,6 @@
 </div>
 </div>
 </div>
-<!-- Analysis Section -->
 <div class="border-t border-surface-variant pt-6" id="analysis-panel">
 <button class="flex justify-between items-center w-full mb-4 hover:bg-surface-container-low p-1 rounded-none transition-colors" onclick="toggleAnalysisPanel()">
 <h2 class="font-label-md text-on-surface-variant uppercase tracking-wider">sites distribution</h2>
@@ -304,16 +276,15 @@
 <canvas id="scatterChart"></canvas>
 </div>
 <div class="mt-4">
-<input class="w-full cursor-pointer" id="alt-slider" max="2000" min="0" style="appearance: none; width: 100%; height: 4px; background: rgb(227, 226, 227); outline: none; border-radius: 0px;" type="range" value="1900"/>
+<input class="w-full cursor-pointer" id="alt-slider" max="2000" min="0" type="range" value="1900"/>
 <div class="text-center text-[12px] font-medium text-on-surface-variant mt-2 font-label-md">
-                            ALTITUDE LIMIT: <span class="text-on-surface" id="alt-limit">2000 m</span>
+              ALTITUDE LIMIT: <span class="text-on-surface" id="alt-limit">2000 m</span>
 </div>
 </div>
 </div>
 </div>
 </div>
 </div>
-<!-- Floating Panels -->
 <div class="absolute bottom-6 right-6 bg-white/95 backdrop-blur-sm px-4 py-2 border border-surface-variant text-sm font-label-md text-on-surface z-[1000] shadow-sm rounded-none" id="elevation-display">Altitude : 0 m</div>
 <div class="max-h-[calc(100vh-200px)] overflow-y-auto" id="definition-panel" style="top: 160px;">
 <span class="close-def" onclick="closeDef()">×</span>
@@ -323,503 +294,532 @@
 <div class="info-vignette" id="info-vignette"></div>
 <div class="info-body relative" id="info-content"></div>
 </div>
-<script>
-        // --- 1. CONFIGURATION GLOBALE ---
-        let allData = [];
-        let scatterChart = null;
-        let biblioMap = new Map();
-        let activeFilters = { headland_ridges: true, ridge_and_furrows: true, lynchets_terraces: true, stone_wall: true, undetermined_ffr: true };
-        let vastAreasVisible = true;
-        let isExpanded = false;
-        let europeCentroidFeatures = [];
+<script data-purpose="map-logic">
+    let allData = [];
+    let scatterChart = null;
+    let biblioMap = new Map();
+    let activeFilters = { headland_ridges: true, ridge_and_furrows: true, lynchets_terraces: true, stone_wall: true, undetermined_ffr: true };
+    let vastAreasVisible = true;
+    let isExpanded = false;
+    let europeCentroidFeatures = [];
+    
+    const colors = {
+      headland_ridges: "#FFED80",
+      ridge_and_furrows: "#739C5A",
+      lynchets_terraces: "#8FA0EB",
+      stone_wall: "#584B96",
+      undetermined_ffr: "#E8987D"
+    };
+    
+    const EUROPE_MIN_ZOOM = 11;
 
-        const colors = {
-            headland_ridges: "#fadb2a",
-            ridge_and_furrows: "#bce793",
-            lynchets_terraces: "#66c1e6",
-            stone_wall: "#6c5da3",
-            undetermined_ffr: "#d45e7c"
+    const definitions = {
+      headland_ridges: { title: "Headland ridges", text: "Accumulation of soil at the end of a plot, caused by the repeated turning of the plough through the years." },
+      ridge_and_furrows: { title: "Ridge & furrows", text: "" },
+      lynchets_terraces: { title: "Lynchets & terraces", text: "Stepped earthworks formed by progressive soil accumulation along slopes due to repeated cultivation." },
+      stone_wall: { title: "Stone walls & heaps", text: "Dry stone walls and clearance heaps (murgers) resulting from the clearing of stones from cultivated plots." },
+      undetermined_ffr: { title: "Undetermined FFR", text: "Former field remains whose precise typology could not be determined from the available data." }
+    };
+
+    const map = L.map('map', { center: [48.8, 7.3], zoom: 5, zoomControl: false });
+    
+    // Création de calques spécifiques et de leurs Canvas Renderers
+    map.createPane('polygonsPane');
+    map.getPane('polygonsPane').style.zIndex = 400;
+
+
+    map.createPane('pointsPane');
+    map.getPane('pointsPane').style.zIndex = 600;
+
+    
+    const esriWorldImagery = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      attribution: 'Tiles &copy; Esri &mdash; Source: Esri...'
+    });
+    esriWorldImagery.addTo(map);
+    
+    const baseMaps = {
+      "Satellite": esriWorldImagery
+      // "Light Grey (Carto)": cartoLight // Optionnel, si tu as défini cartoLight ailleurs
+    };
+    
+    L.control.layers(baseMaps, null, { position: 'topright' }).addTo(map);
+    L.control.zoom({ position: 'topright' }).addTo(map);
+
+    const pointsLayer = L.layerGroup().addTo(map);
+    const europeCentroidsLayer = L.layerGroup();
+    const europePolygonsLayer = L.layerGroup();
+    
+    const europePolygonsGeoJSON = L.geoJSON(null, {
+      pane: 'polygonsPane', // <-- Assure-toi que "renderer: polyRenderer" est bien supprimé !
+      filter: (feature) => feature.geometry && feature.geometry.type !== 'Point',
+      style: (f) => {
+        const cat = getCategory(f.properties.landform);
+        const isStoneWall = cat === 'stone_wall';
+        return { 
+          color: isStoneWall ? "#6c5da3" : "#ffffff", // Bordure violette pour les murs, blanche pour le reste
+          weight: 0.9, 
+          fillColor: isStoneWall ? "url(#stone-wall-pattern)" : colors[cat], // Application du motif
+          fillOpacity: isStoneWall ? 0.8 : 0.5 
         };
+      },
+      onEachFeature: (feature, layer) => {
+        layer.on('click', (e) => {
+          L.DomEvent.stopPropagation(e);
+          showDetails(feature.properties, feature.properties.nearest_alt || 0);
+        });
+      }
+    }).addTo(europePolygonsLayer);
+    
+    const MAX_FOCUS_ZOOM = 15;
 
-        const EUROPE_MIN_ZOOM = 11;
+    function focusOnPoint(lat, lon, targetZoom) {
+      const current = map.getZoom();
+      const zoom = Math.min(Math.max(current, targetZoom), MAX_FOCUS_ZOOM);
+      map.flyTo([lat, lon], zoom, { duration: 0.8 });
+    }
 
-        const definitions = {
-            headland_ridges: { title: "Headland ridges", text: "Accumulation of soil at the end of a plot, caused by the repeated turning of the plough through the years." },
-            ridge_and_furrows: { title: "Ridge & furrows", text: "" },
-            lynchets_terraces: { title: "Lynchets & terraces", text: "Stepped earthworks formed by progressive soil accumulation along slopes due to repeated cultivation." },
-            stone_wall: { title: "Stone walls & heaps", text: "Dry stone walls and clearance heaps (murgers) resulting from the clearing of stones from cultivated plots." },
-            undetermined_ffr: { title: "Undetermined FFR", text: "Former field remains whose precise typology could not be determined from the available data." }
+    function getCategory(f) {
+      if (!f) return "undetermined_ffr";
+      const val = f.toLowerCase().trim();
+      if (val.includes("headland_ridge")) return "headland_ridges";
+      if (val.includes("raf") || val.includes("potential_raf")) return "ridge_and_furrows";
+      if (val.includes("lynchets_terraces") || val.includes("lynchets") || val.includes("terraces")) return "lynchets_terraces";
+      if (val.includes("stw")) return "stone_wall";
+      return "undetermined_ffr";
+    }
+
+    function getSourceHTML(props) {
+      const author = props.Source || "Auteur inconnu";
+      const code = props.biblio_code ? props.biblio_code.toString().trim() : null;
+      if (code && biblioMap.has(code)) {
+        return `<a href="${biblioMap.get(code)}" target="_blank" class="info-auteur-lien">${author} 🔗</a>`;
+      }
+      return `<span>${author}</span>`;
+    }
+
+    function showDetails(props) {
+      const panel = document.getElementById('info-panel');
+      const content = document.getElementById('info-content');
+      if (!panel || !content) return;
+
+      panel.style.display = 'block';
+      const datationFields = [props.relat_age, props['OSL start'], props['14C age'], props.start_cult];
+      const datationInfo = datationFields
+        .filter(val => val && val !== null && val !== "null" && val.toString().trim() !== "")
+        .map(val => val.toString().replace(/_/g, ' '))
+        .join(" / ");
+        
+      let landformDisplay = 'Non défini';
+      if (props.landform) {
+        const lf = props.landform.toString();
+        if (lf.toLowerCase() === 'raf') {
+          landformDisplay = 'Ridge and furrows';
+        } else if (lf.toLowerCase() === 'stw') {
+          landformDisplay = 'Stone walls and heaps';
+        } else {
+          landformDisplay = lf.replace(/_/g, ' ');
+        }
+      }
+
+      let htmlContent = `
+        <span onclick="document.getElementById('info-panel').style.display='none'" 
+              style="cursor:pointer; position:absolute; top:20px; right:20px; color:#737784; font-size:18px; line-height:1;">✕</span>
+        <div class="info-title" style="padding-right: 20px;">${landformDisplay}</div>
+        <div class="info-label">Source</div>
+        <div class="info-value">${getSourceHTML(props)}</div>
+      `;
+      
+      if (props.Method && props.Method.toString().trim() !== "") {
+        htmlContent += `
+          <div class="info-label">Method</div>
+          <div class="info-value">${props.Method.toString().replace(/_/g, ' ')}</div>
+        `;
+      }
+
+      if (datationInfo) {
+        htmlContent += `
+          <div class="info-label">Relative Age</div>
+          <div class="info-value bg-primary-container/10 border-l-2 border-primary p-2 mt-1 rounded-none text-xs">${datationInfo}</div>
+        `;
+      }
+
+      const site = props.site_j ? props.site_j.toString().replace(/_/g, ' ') : 'N/A';
+      const country = props.country ? props.country.toString().replace(/_/g, ' ') : '';
+      
+      if (site.toLowerCase() !== 'n/a') {
+        htmlContent += `
+          <div class="info-label">Site</div>
+          <div class="info-value">${site} ${country ? `(${country})` : ''}</div>
+        `;
+      }
+
+      content.innerHTML = htmlContent;
+    }
+
+    function toggleFilter(category, event) {
+      if (event) event.stopPropagation();
+      activeFilters[category] = !activeFilters[category];
+      if (event && event.target) {
+        if (event.target.classList.contains('color-box')) {
+          event.target.classList.toggle('disabled', !activeFilters[category]);
+        } else if (event.target.previousElementSibling) {
+          event.target.previousElementSibling.classList.toggle('disabled', !activeFilters[category]);
+        }
+      }
+
+      const slider = document.getElementById('alt-slider');
+      updateUI(slider ? slider.value : 2000);
+    }
+
+    function showDefinition(category) {
+      const def = definitions[category];
+      if (!def) return;
+      const panel = document.getElementById('definition-panel');
+      const content = document.getElementById('def-content');
+      if (!panel || !content) return;
+
+      const analysisContent = document.getElementById('analysis-content');
+      const analysisIcon = document.getElementById('analysis-toggle-icon');
+      if (analysisContent && !analysisContent.classList.contains('hidden')) {
+        analysisContent.classList.add('hidden');
+        if (analysisIcon) analysisIcon.innerText = 'expand_more';
+        if (isExpanded) {
+          toggleAnalysisSize();
+        }
+      }
+
+      panel.classList.add('open');
+      content.style.opacity = "1";
+      content.innerHTML = `
+        <div class="def-title" style="color:${colors[category]}">${def.title}</div>
+        <div class="def-para mb-4">${def.text}</div>
+        <div class="w-full h-48 bg-surface-container border border-outline-variant rounded-none flex flex-col items-center justify-center gap-2 overflow-hidden">
+          <span class="material-symbols-outlined text-outline">image</span>
+          <span class="text-xs font-label-md text-on-surface-variant uppercase tracking-wider">Photo</span>
+        </div>
+      `;
+    }
+
+    function closeDef() {
+      const panel = document.getElementById('definition-panel');
+      const content = document.getElementById('def-content');
+      if (!panel || !content) return;
+      panel.classList.remove('open');
+      content.style.opacity = "0";
+    }
+
+    function toggleVastAreas(event) {
+      if (event) event.stopPropagation();
+      const dot = document.getElementById('dot-vast');
+      vastAreasVisible = !vastAreasVisible;
+
+      if (vastAreasVisible) {
+        map.addLayer(genStudiesLayer);
+        if (dot) {
+          dot.classList.remove('disabled');
+          dot.style.background = "#094cb2";
+        }
+      } else {
+        map.removeLayer(genStudiesLayer);
+        if (dot) {
+          dot.classList.add('disabled');
+          dot.style.background = "transparent";
+        }
+      }
+    }
+
+    const genStudiesLayer = L.geoJSON(null, {
+      pane: 'polygonsPane', // <-- Assure-toi que "renderer: polyRenderer" est bien supprimé !
+      filter: (feature) => feature.geometry && feature.geometry.type !== 'Point',
+      style: (f) => {
+        const cat = getCategory(f.properties.landform);
+        const isStoneWall = cat === 'stone_wall';
+        const baseColor = colors[cat] || "#094cb2";
+        
+        return { 
+          color: baseColor, 
+          weight: 1.5, 
+          fillColor: isStoneWall ? "url(#stone-wall-pattern)" : baseColor, // Application du motif
+          fillOpacity: isStoneWall ? 0.7 : 0.7, 
+          dashArray: '20' 
         };
-
-        // Initialisation de la carte
-        const map = L.map('map', { center: [48.8, 7.3], zoom: 5, zoomControl: false, preferCanvas: true });
-        
-        // Base layers
-        const cartoLight = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-            subdomains: 'abcd',
-            maxZoom: 20
+      },
+      onEachFeature: (feature, layer) => {
+        layer.on('click', (e) => {
+          L.DomEvent.stopPropagation(e);
+          map.fitBounds(layer.getBounds(), { padding: [50, 50], maxZoom: 13 });
+          showDetails(feature.properties);
         });
-        
-        const esriWorldImagery = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-            attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
-        });
+      }
+    });
+    
+    function enrichEuropePolygonsWithCentroidInfo() {
+      if (!europeCentroidFeatures.length) return;
+      const points = turf.featureCollection(europeCentroidFeatures);
+      
+      europePolygonsGeoJSON.eachLayer(l => {
+        try {
+          const centroid = turf.centroid(l.feature);
+          const nearest = turf.nearestPoint(centroid, points);
 
-        // Set default
-        esriWorldImagery.addTo(map);
-        
-        const baseMaps = {
-            "Satellite": esriWorldImagery,
-            "Light Grey (Carto)": cartoLight
-        };
-
-        L.control.layers(baseMaps, null, { position: 'topright' }).addTo(map);
-
-        
-        // Add minimal zoom control to top right, below layers
-        L.control.zoom({ position: 'topright' }).addTo(map);
-
-        const pointsLayer = L.layerGroup().addTo(map);
-        const europeCentroidsLayer = L.layerGroup();
-        const europePolygonsLayer = L.layerGroup();
-        const MAX_FOCUS_ZOOM = 15;
-
-        function focusOnPoint(lat, lon, targetZoom) {
-            const current = map.getZoom();
-            const zoom = Math.min(Math.max(current, targetZoom), MAX_FOCUS_ZOOM);
-            map.flyTo([lat, lon], zoom, { duration: 0.8 });
+          if (nearest) {
+            l.feature.properties.nearest_alt = nearest.properties.altitude;
+            const data = nearest.properties.originalData;
+            if (data) {
+               if (!l.feature.properties.Source) l.feature.properties.Source = data.Source;
+              if (!l.feature.properties.biblio_code) l.feature.properties.biblio_code = data.biblio_code;
+              if (!l.feature.properties.Method) l.feature.properties.Method = data.Method;
+            }
+          }
+        } catch (e) {
+          console.warn("Calcul spatial ou transfert d'infos échoué pour un polygone Europe :", e);
         }
+      });
+    }
 
-        // --- 2. FONCTIONS DE TRAITEMENT ---
-        function getCategory(f) {
-            if (!f) return "undetermined_ffr";
-            const val = f.toLowerCase().trim();
-            if (val.includes("headland_ridge")) return "headland_ridges";
-            if (val.includes("raf") || val.includes("potential_raf")) return "ridge_and_furrows";
-            if (val.includes("lynchets_terraces") || val.includes("lynchets") || val.includes("terraces")) return "lynchets_terraces";
-            if (val.includes("stw")) return "stone_wall";
-            return "undetermined_ffr";
-        }
+    function loadEuropeCentroids(geojson) {
+      if (!geojson || !geojson.features) return;
+      
+      geojson.features.forEach(feature => {
+        const props = feature.properties;
+        if (!props.landform) return;
 
-        function getSourceHTML(props) {
-            const author = props.Source || "Auteur inconnu";
-            const code = props.biblio_code ? props.biblio_code.toString().trim() : null;
-            if (code && biblioMap.has(code)) {
-                return `<a href="${biblioMap.get(code)}" target="_blank" class="info-auteur-lien">${author} 🔗</a>`;
-            }
-            return `<span>${author}</span>`;
-        }
+        const lon = feature.geometry.coordinates[0];
+        const lat = feature.geometry.coordinates[1];
+        const cat = getCategory(props.landform);
+        const alt = parseFloat(props.alti) || parseFloat(props._jalti) || parseFloat(props.z_2) || 0;
 
-        function showDetails(props) {
-            const panel = document.getElementById('info-panel');
-            const content = document.getElementById('info-content');
-            if (!panel || !content) return;
-
-            panel.style.display = 'block';
-            
-            const datationFields = [props.relat_age, props['OSL start'], props['14C age'], props.start_cult];
-            const datationInfo = datationFields
-                .filter(val => val && val !== null && val !== "null" && val.toString().trim() !== "")
-                .map(val => val.toString().replace(/_/g, ' '))
-                .join(" / ");
-
-            let landformDisplay = 'Non défini';
-            if (props.landform) {
-                const lf = props.landform.toString();
-                if (lf.toLowerCase() === 'raf') {
-                    landformDisplay = 'Ridge and furrows';
-                } else if (lf.toLowerCase() === 'stw') {
-                    landformDisplay = 'Stone walls and heaps';
-                } else {
-                    landformDisplay = lf.replace(/_/g, ' ');
-                }
-            }
-
-            let htmlContent = `
-                <span onclick="document.getElementById('info-panel').style.display='none'" 
-                      style="cursor:pointer; position:absolute; top:20px; right:20px; color:#737784; font-size:18px; line-height:1;">✕</span>
-                <div class="info-title" style="padding-right: 20px;">${landformDisplay}</div>
-                <div class="info-label">Source</div>
-                <div class="info-value">${getSourceHTML(props)}</div>
-            `;
-
-            if (props.Method && props.Method.toString().trim() !== "") {
-                htmlContent += `
-                    <div class="info-label">Method</div>
-                    <div class="info-value">${props.Method.toString().replace(/_/g, ' ')}</div>
-                `;
-            }
-
-            if (datationInfo) {
-                htmlContent += `
-                    <div class="info-label">Relative Age</div>
-                    <div class="info-value bg-primary-container/10 border-l-2 border-primary p-2 mt-1 rounded-none text-xs">${datationInfo}</div>
-                `;
-            }
-
-            const site = props.site_j ? props.site_j.toString().replace(/_/g, ' ') : 'N/A';
-            const country = props.country ? props.country.toString().replace(/_/g, ' ') : '';
-
-            if (site.toLowerCase() !== 'n/a') {
-                htmlContent += `
-                    <div class="info-label">Site</div>
-                    <div class="info-value">${site} ${country ? `(${country})` : ''}</div>
-                `;
-            }
-
-            content.innerHTML = htmlContent;
-        }
-
-        // --- LEGENDE : FILTRES PAR CATEGORIE & PANNEAU DEFINITION ---
-        function toggleFilter(category, event) {
-            if (event) event.stopPropagation();
-            activeFilters[category] = !activeFilters[category];
-            if (event && event.target) {
-                if (event.target.classList.contains('color-box')) {
-                    event.target.classList.toggle('disabled', !activeFilters[category]);
-                } else if (event.target.previousElementSibling) {
-                    event.target.previousElementSibling.classList.toggle('disabled', !activeFilters[category]);
-                }
-            }
-
-            const slider = document.getElementById('alt-slider');
-            updateUI(slider ? slider.value : 2000);
-        }
-
-        function showDefinition(category) {
-            const def = definitions[category];
-            if (!def) return;
-            const panel = document.getElementById('definition-panel');
-            const content = document.getElementById('def-content');
-            if (!panel || !content) return;
-
-            const analysisContent = document.getElementById('analysis-content');
-            const analysisIcon = document.getElementById('analysis-toggle-icon');
-            if (analysisContent && !analysisContent.classList.contains('hidden')) {
-                analysisContent.classList.add('hidden');
-                if (analysisIcon) analysisIcon.innerText = 'expand_more';
-                if (isExpanded) {
-                    toggleAnalysisSize();
-                }
-            }
-
-            panel.classList.add('open');
-            content.style.opacity = "1";
-            content.innerHTML = `
-                <div class="def-title" style="color:${colors[category]}">${def.title}</div>
-                <div class="def-para mb-4">${def.text}</div>
-                <div class="w-full h-48 bg-surface-container border border-outline-variant rounded-none flex flex-col items-center justify-center gap-2 overflow-hidden">
-                    <span class="material-symbols-outlined text-outline">image</span>
-                    <span class="text-xs font-label-md text-on-surface-variant uppercase tracking-wider">Photo</span>
-                </div>
-            `;
-        }
-
-        function closeDef() {
-            const panel = document.getElementById('definition-panel');
-            const content = document.getElementById('def-content');
-            if (!panel || !content) return;
-            panel.classList.remove('open');
-            content.style.opacity = "0";
-        }
-
-        // --- ETUDES GENERALES (VAST AREAS) ---
-        function toggleVastAreas(event) {
-            if (event) event.stopPropagation();
-            const dot = document.getElementById('dot-vast');
-            vastAreasVisible = !vastAreasVisible;
-
-            if (vastAreasVisible) {
-                map.addLayer(genStudiesLayer);
-                if (dot) {
-                    dot.classList.remove('disabled');
-                    dot.style.background = "#094cb2";
-                }
-            } else {
-                map.removeLayer(genStudiesLayer);
-                if (dot) {
-                    dot.classList.add('disabled');
-                    dot.style.background = "transparent";
-                }
-            }
-        }
-
-        const genStudiesLayer = L.geoJSON(null, {
-            filter: (feature) => feature.geometry && feature.geometry.type !== 'Point',
-            style: (f) => {
-                const cat = getCategory(f.properties.landform);
-                return { color: colors[cat] || "#094cb2", weight: 1.5, fillColor: colors[cat] || "#094cb2", fillOpacity: 0.25, dashArray: '4' };
-            },
-            onEachFeature: (feature, layer) => {
-                layer.on('click', (e) => {
-                    L.DomEvent.stopPropagation(e);
-                    map.fitBounds(layer.getBounds(), { padding: [50, 50], maxZoom: 13 });
-                    showDetails(feature.properties);
-                });
-            }
-        });
-
-        // --- EUROPE : POLYGONES ---
-        const europePolygonsGeoJSON = L.geoJSON(null, {
-            filter: (feature) => feature.geometry && feature.geometry.type !== 'Point',
-            style: (f) => {
-                const cat = getCategory(f.properties.landform);
-                return { color: "#ffffff", weight: 0.7, fillColor: colors[cat], fillOpacity: 0.6 };
-            },
-            onEachFeature: (feature, layer) => {
-                layer.on('click', (e) => {
-                    L.DomEvent.stopPropagation(e);
-                    showDetails(feature.properties, feature.properties.nearest_alt || 0);
-                });
-            }
-        }).addTo(europePolygonsLayer);
-
-        function enrichEuropePolygonsWithCentroidInfo() {
-            if (!europeCentroidFeatures.length) return;
-            const points = turf.featureCollection(europeCentroidFeatures);
-
-            europePolygonsGeoJSON.eachLayer(l => {
-                try {
-                    const centroid = turf.centroid(l.feature);
-                    const nearest = turf.nearestPoint(centroid, points);
-
-                    if (nearest) {
-                        l.feature.properties.nearest_alt = nearest.properties.altitude;
-                        const data = nearest.properties.originalData;
-                        if (data) {
-                            if (!l.feature.properties.Source) l.feature.properties.Source = data.Source;
-                            if (!l.feature.properties.biblio_code) l.feature.properties.biblio_code = data.biblio_code;
-                            if (!l.feature.properties.Method) l.feature.properties.Method = data.Method;
-                        }
-                    }
-                } catch (e) {
-                    console.warn("Calcul spatial ou transfert d'infos échoué pour un polygone Europe :", e);
-                }
-            });
-        }
-
-        // --- EUROPE : CENTROIDES ---
-        function loadEuropeCentroids(geojson) {
-            if (!geojson || !geojson.features) return;
-
-            geojson.features.forEach(feature => {
-                const props = feature.properties;
-                if (!props.landform) return;
-
-                const lon = feature.geometry.coordinates[0];
-                const lat = feature.geometry.coordinates[1];
-                const cat = getCategory(props.landform);
-                const alt = parseFloat(props.alti) || parseFloat(props._jalti) || parseFloat(props.z_2) || 0;
-
-                const m = L.circleMarker([lat, lon], {
-                    radius: 4, fillColor: colors[cat], color: "#fff", weight: 1, fillOpacity: 0.8
+        const icon = L.divIcon({
+                    className: 'custom-diamond-wrapper',
+                    html: `<div class="diamond-marker" style="background-color: ${colors[cat]};"></div>`,
+                    iconSize: [8, 8],
+                    iconAnchor: [4, 4]
                 });
 
-                m.on('click', (e) => {
+                const m = L.marker([lat, lon], { icon: icon });
+
+         m.on('click', (e) => {
                     L.DomEvent.stopPropagation(e);
                     if (!map.isZooming()) map.setView([lat, lon], 12);
-                    showDetails(props);
+                    showDetails(props, alt);
                 });
 
-                m.on('mouseover', function () {
-                    this.setRadius(8);
-                    this.setStyle({ weight: 2, fillOpacity: 1 });
+                m.on('mouseover', function (e) {
+                    const el = e.target.getElement();
+                    if (el) {
+                        const dm = el.querySelector('.diamond-marker');
+                        if (dm) {
+                            dm.style.transform = 'rotate(45deg) scale(2)';
+                            dm.style.opacity = '1';
+                        }
+                        el.style.zIndex = 1000;
+                    }
                 });
 
-                m.on('mouseout', function () {
-                    this.setRadius(4);
-                    this.setStyle({ weight: 1, fillOpacity: 0.8 });
+                m.on('mouseout', function (e) {
+                    const el = e.target.getElement();
+                    if (el) {
+                        const dm = el.querySelector('.diamond-marker');
+                        if (dm) {
+                            dm.style.transform = 'rotate(45deg) scale(1)';
+                            dm.style.opacity = '0.8';
+                        }
+                        el.style.zIndex = '';
+                    }
                 });
-
+                m.addTo(europeCentroidsLayer);
+                allData.push({ m, alt, cat, row: props, isEurope: true });
+                europeCentroidFeatures.push(turf.point([lon, lat], { altitude: alt, originalData: props }));
             });
         }
 
-        let lastCall = 0;
-        map.on('mousemove', (e) => {
-            const now = Date.now();
-            if (now - lastCall < 500) return; // rate limit slightly more
-            lastCall = now;
+    let lastCall = 0;
+    map.on('mousemove', (e) => {
+      const now = Date.now();
+      if (now - lastCall < 500) return;
+      lastCall = now;
 
-            const lat = e.latlng.lat;
-            const lng = e.latlng.lng;
+      const lat = e.latlng.lat;
+      const lng = e.latlng.lng;
 
-            fetch(`https://api.open-elevation.com/api/v1/lookup?locations=${lat},${lng}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.results && data.results.length > 0) {
-                        const alt = Math.round(data.results[0].elevation);
-                        document.getElementById('elevation-display').innerText = `Altitude : ${alt} m`;
-                    }
-                })
-                .catch(err => {});
+      fetch(`https://api.open-elevation.com/api/v1/lookup?locations=${lat},${lng}`)
+        .then(response => response.json())
+        .then(data => {
+          if (data.results && data.results.length > 0) {
+            const alt = Math.round(data.results[0].elevation);
+            document.getElementById('elevation-display').innerText = `Altitude : ${alt} m`;
+          }
+        })
+        .catch(err => {});
+    });
+    
+    function drawScatterPlot() {
+      const canvas = document.getElementById('scatterChart');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      
+      const categoryOrder = Object.keys(colors);
+      const slider = document.getElementById('alt-slider');
+      const limit = slider ? parseFloat(slider.value) : 2000;
+      
+      const datasets = categoryOrder.map((cat, index) => ({
+        label: cat,
+        data: allData
+          .filter(d => d.cat === cat && activeFilters[cat] && d.alt <= limit)
+          .map(d => ({ x: index, y: d.alt, originalData: d })),
+        backgroundColor: colors[cat],
+        pointRadius: isExpanded ? 6 : 4,
+        pointHoverRadius: 10,
+        pointHoverBackgroundColor: "#1b1c1d",
+        borderWidth: 0
+      }));
+      
+      if (scatterChart) scatterChart.destroy();
+      
+      Chart.defaults.color = '#737784';
+      Chart.defaults.font.family = 'Inter, sans-serif';
+      
+      scatterChart = new Chart(ctx, {
+        type: 'scatter',
+        data: { datasets: datasets },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: { duration: 800, easing: 'easeOutQuart' },
+          scales: {
+            y: {
+              grid: { color: '#e3e2e3' },
+              ticks: { color: '#737784', font: { size: 10 } },
+              title: { display: true, text: 'ALTITUDE (M)', color: '#434653', font: { size: 9, weight: '600' } }
+            },
+            x: {
+              grid: { display: false },
+              ticks: {
+                color: '#737784',
+                font: { size: 9 },
+                callback: (val) => categoryOrder[val] ? categoryOrder[val].replace(/_/g, ' ').toUpperCase() : ''
+               }
+            }
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: { enabled: false }
+          },
+          onClick: (e, items) => {
+            if (items.length > 0) {
+              const point = scatterChart.data.datasets[items[0].datasetIndex].data[items[0].index].originalData;
+              focusOnPoint(point.m.getLatLng().lat, point.m.getLatLng().lng, 16);
+              if (isExpanded) toggleAnalysisSize();
+            }
+          }
+        }
+      });
+    }
+    
+    function toggleAnalysisPanel() {
+      const content = document.getElementById('analysis-content');
+      const icon = document.getElementById('analysis-toggle-icon');
+      
+      if(content.classList.contains('hidden')) {
+        content.classList.remove('hidden');
+        icon.innerText = 'expand_less';
+        if (!scatterChart && allData.length > 0) drawScatterPlot();
+      } else {
+        content.classList.add('hidden');
+        icon.innerText = 'expand_more';
+        if (isExpanded) {
+          toggleAnalysisSize();
+        }
+      }
+    }
+    
+    function toggleAnalysisSize() {
+      const content = document.getElementById('analysis-content');
+      const icon = content.querySelector('.material-symbols-outlined');
+      isExpanded = !isExpanded;
+      content.classList.toggle('analysis-expanded');
+      
+      if (isExpanded) {
+        icon.innerText = 'close_fullscreen';
+      } else {
+        icon.innerText = 'open_in_full';
+      }
+  
+      setTimeout(() => {
+        if (scatterChart) {
+          scatterChart.resize();
+          drawScatterPlot();
+        }
+      }, 50);
+    }
+
+    function updateUI(limit) {
+      limit = parseFloat(limit);
+      
+      allData.forEach(d => {
+        const layer = d.isEurope ? europeCentroidsLayer : pointsLayer;
+        const shouldShow = activeFilters[d.cat] && d.alt <= limit;
+        const isShown = layer.hasLayer(d.m);
+        if (shouldShow && !isShown) layer.addLayer(d.m);
+        else if (!shouldShow && isShown) layer.removeLayer(d.m);
+      });
+      
+      const visibleCount = allData.filter(d => activeFilters[d.cat] && d.alt <= limit).length;
+      const countEl = document.getElementById('count-visible');
+      
+      if (countEl) countEl.innerText = visibleCount.toLocaleString() + " SITES";
+
+      if (scatterChart) drawScatterPlot();
+      pointsLayer.bringToFront(); // Ensure points are always clickable
+    }
+
+    L.control.scale({
+      metric: true,
+      imperial: false,
+      position: 'bottomleft'
+    }).addTo(map);
+    
+    Promise.all([
+      fetch('biblio_code.csv').then(r => r.ok ? r.text() : ""),
+      fetch('bdd_ponct_wgs84.geojson').then(r => r.ok ? r.json() : null),
+      fetch('europe_ne.geojson').then(r => r.ok ? r.json() : null),
+      fetch('bdd_gen_studiers_wgs842.geojson').then(r => r.ok ? r.json() : null)
+    ]).then(sources => {
+
+      if (sources[0]) {
+        Papa.parse(sources[0], {
+          delimiter: ";",
+          header: true,
+          skipEmptyLines: true,
+          transformHeader: h => h.trim(),
+          complete: res => {
+            res.data.forEach(row => {
+              const codeId = (row.biblio_code || row.code || "").toString().trim();
+              const lien = (row['Lien/doi'] || "").trim();
+              if (codeId && lien) { biblioMap.set(codeId, lien); }
+            });
+          }
         });
+      }
 
-        // --- FONCTION GRAPHIQUE ALTITUDE ---
-        function drawScatterPlot() {
-            const canvas = document.getElementById('scatterChart');
-            if (!canvas) return;
-            const ctx = canvas.getContext('2d');
-
-            const categoryOrder = Object.keys(colors);
-            const slider = document.getElementById('alt-slider');
-            const limit = slider ? parseFloat(slider.value) : 2000;
-
-            const datasets = categoryOrder.map((cat, index) => ({
-                label: cat,
-                data: allData
-                    .filter(d => d.cat === cat && activeFilters[cat] && d.alt <= limit)
-                    .map(d => ({ x: index, y: d.alt, originalData: d })),
-                backgroundColor: colors[cat],
-                pointRadius: isExpanded ? 6 : 4,
-                pointHoverRadius: 10,
-                pointHoverBackgroundColor: "#1b1c1d",
-                borderWidth: 0
-            }));
-
-            if (scatterChart) scatterChart.destroy();
-            
-            // Theme overrides for chart
-            Chart.defaults.color = '#737784';
-            Chart.defaults.font.family = 'Inter, sans-serif';
-
-            scatterChart = new Chart(ctx, {
-                type: 'scatter',
-                data: { datasets: datasets },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    animation: { duration: 800, easing: 'easeOutQuart' },
-                    scales: {
-                        y: {
-                            grid: { color: '#e3e2e3' },
-                            ticks: { color: '#737784', font: { size: 10 } },
-                            title: { display: true, text: 'ALTITUDE (M)', color: '#434653', font: { size: 9, weight: '600' } }
-                        },
-                        x: {
-                            grid: { display: false },
-                            ticks: {
-                                color: '#737784',
-                                font: { size: 9 },
-                                callback: (val) => categoryOrder[val] ? categoryOrder[val].replace(/_/g, ' ').toUpperCase() : ''
-                            }
-                        }
-                    },
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: { enabled: false }
-                    },
-                    onClick: (e, items) => {
-                        if (items.length > 0) {
-                            const point = scatterChart.data.datasets[items[0].datasetIndex].data[items[0].index].originalData;
-                            focusOnPoint(point.m.getLatLng().lat, point.m.getLatLng().lng, 16);
-                            if (isExpanded) toggleAnalysisSize();
-                        }
-                    }
-                }
-            });
-        }
-        
-        function toggleAnalysisPanel() {
-            const content = document.getElementById('analysis-content');
-            const icon = document.getElementById('analysis-toggle-icon');
-            
-            if(content.classList.contains('hidden')) {
-                content.classList.remove('hidden');
-                icon.innerText = 'expand_less';
-                if (!scatterChart && allData.length > 0) drawScatterPlot();
-            } else {
-                content.classList.add('hidden');
-                icon.innerText = 'expand_more';
-                if (isExpanded) {
-                    toggleAnalysisSize(); // Reset expansion if closing
-                }
-            }
-        }
-        
-        function toggleAnalysisSize() {
-            const content = document.getElementById('analysis-content');
-            const icon = content.querySelector('.material-symbols-outlined');
-            isExpanded = !isExpanded;
-            content.classList.toggle('analysis-expanded');
-            
-            if (isExpanded) {
-                icon.innerText = 'close_fullscreen';
-                // Add dark overlay if needed or just let it float
-            } else {
-                icon.innerText = 'open_in_full';
-            }
-        
-            setTimeout(() => {
-                if (scatterChart) {
-                    scatterChart.resize();
-                    drawScatterPlot();
-                }
-            }, 50);
-        }
-
-        // --- INTERFACE : FILTRE ALTITUDE / COMPTEUR DE SITES ---
-        function updateUI(limit) {
-            limit = parseFloat(limit);
-
-            allData.forEach(d => {
-                const layer = d.isEurope ? europeCentroidsLayer : pointsLayer;
-                const shouldShow = activeFilters[d.cat] && d.alt <= limit;
-                const isShown = layer.hasLayer(d.m);
-                if (shouldShow && !isShown) layer.addLayer(d.m);
-                else if (!shouldShow && isShown) layer.removeLayer(d.m);
-            });
-
-            const visibleCount = allData.filter(d => activeFilters[d.cat] && d.alt <= limit).length;
-            const countEl = document.getElementById('count-visible');
-            if (countEl) countEl.innerText = visibleCount.toLocaleString() + " SITES";
-
-            if (scatterChart) drawScatterPlot();
-        }
-
-        L.control.scale({
-            metric: true,
-            imperial: false,
-            position: 'bottomleft'
-        }).addTo(map);
-
-        // --- 3. CHARGEMENT DES DONNÉES ---
-        // Mocking fetch logic gracefully to not error out if local files missing
-        Promise.all([
-            fetch('biblio_code.csv').then(r => r.ok ? r.text() : ""),
-            fetch('bdd_ponct_wgs84.geojson').then(r => r.ok ? r.json() : null),
-            fetch('europe_ne.geojson').then(r => r.ok ? r.json() : null),
-            fetch('bdd_gen_studiers_wgs842.geojson').then(r => r.ok ? r.json() : null)
-        ]).then(sources => {
-
-            if (sources[0]) {
-                Papa.parse(sources[0], {
-                    delimiter: ";",
-                    header: true,
-                    skipEmptyLines: true,
-                    transformHeader: h => h.trim(),
-                    complete: res => {
-                        res.data.forEach(row => {
-                            const codeId = (row.biblio_code || row.code || "").toString().trim();
-                            const lien = (row['Lien/doi'] || "").trim();
-                            if (codeId && lien) { biblioMap.set(codeId, lien); }
-                        });
-                    }
-                });
-            }
-
-            if (sources[1]) {
-                sources[1].features.forEach(feature => {
-                    const props = feature.properties;
-                    if (!props.landform) return;
-
-                    const lon = feature.geometry.coordinates[0];
-                    const lat = feature.geometry.coordinates[1];
-                    const cat = getCategory(props.landform);
-                    const alt = parseFloat(props.alti) || parseFloat(props._jalti) || 0;
-
-                    const m = L.circleMarker([lat, lon], {
-                        radius: 4, fillColor: colors[cat], color: "#fff", weight: 1, fillOpacity: 0.8
+      if (sources[1]) {
+        sources[1].features.forEach(feature => {
+          const props = feature.properties;
+          if (!props.landform) return;
+          const lon = feature.geometry.coordinates[0];
+          const lat = feature.geometry.coordinates[1];
+          const cat = getCategory(props.landform);
+          const alt =  parseFloat(props._jalti) || 0;
+          
+          // Code corrigé
+          const icon = L.divIcon({
+                        className: 'custom-diamond-wrapper',
+                        html: `<div class="diamond-marker" style="background-color: ${colors[cat]};"></div>`,
+                        iconSize: [9, 9],
+                        iconAnchor: [4, 4]
                     });
+
+                    const m = L.marker([lat, lon], { icon: icon });
 
                     m.on('click', (e) => {
                         L.DomEvent.stopPropagation(e);
@@ -827,63 +827,85 @@
                         showDetails(props, alt);
                     });
                     
-                    m.on('mouseover', function () {
-                        this.setRadius(8);
-                        this.setStyle({ weight: 2, fillOpacity: 1 });
+                    m.on('mouseover', function (e) {
+                        const el = e.target.getElement();
+                        if (el) {
+                            const dm = el.querySelector('.diamond-marker');
+                            if (dm) {
+                                dm.style.transform = 'rotate(45deg) scale(1.5)';
+                                dm.style.opacity = '1';
+                            }
+                            el.style.zIndex = 1000;
+                        }
                     });
         
-                    m.on('mouseout', function () {
-                        this.setRadius(4);
-                        this.setStyle({ weight: 1, fillOpacity: 0.8 });
+                    m.on('mouseout', function (e) {
+                        const el = e.target.getElement();
+                        if (el) {
+                            const dm = el.querySelector('.diamond-marker');
+                            if (dm) {
+                                dm.style.transform = 'rotate(45deg) scale(1)';
+                                dm.style.opacity = '0.8';
+                            }
+                            el.style.zIndex = '';
+                        }
                     });
 
                     m.addTo(pointsLayer);
                     allData.push({ m, alt, cat, row: props });
                 });
             }
+      
+      // TRAITEMENT AJOUTÉ POUR LES DONNÉES EUROPE
+      if (sources[2]) {
+        europePolygonsGeoJSON.addData(sources[2]);
+        loadEuropeCentroids(sources[2]);
+        enrichEuropePolygonsWithCentroidInfo();
+      }
 
-            if (sources[3]) {
-                genStudiesLayer.addData(sources[3]);
-                if (vastAreasVisible) genStudiesLayer.addTo(map);
-            }
-            
-            drawScatterPlot();
-            const slider = document.getElementById('alt-slider');
-            updateUI(slider ? slider.value : 2000);
-            pointsLayer.bringToFront();
-            europeCentroidsLayer.bringToFront();
+      if (sources[3]) {
+        genStudiesLayer.addData(sources[3]);
+        if (vastAreasVisible) genStudiesLayer.addTo(map);
+      }
+      
+      drawScatterPlot();
+      const slider = document.getElementById('alt-slider');
+      updateUI(slider ? slider.value : 2000);
+      
+      pointsLayer.bringToFront();
+      europeCentroidsLayer.bringToFront();
 
-        }).catch(err => console.error("Data load error:", err));
+    }).catch(err => console.error("Data load error:", err));
 
-        // --- 4. ECOUTEURS D'EVENEMENTS ---
-        const altSliderEl = document.getElementById('alt-slider');
-        if (altSliderEl) {
-            altSliderEl.oninput = e => {
-                document.getElementById('alt-limit').innerText = e.target.value + " m";
-                updateUI(e.target.value);
-            };
-        }
+    const altSliderEl = document.getElementById('alt-slider');
+    if (altSliderEl) {
+      altSliderEl.oninput = e => {
+        document.getElementById('alt-limit').innerText = e.target.value + " m";
+        updateUI(e.target.value);
+      };
+    }
 
-        map.on('click', () => {
-            const infoPanel = document.getElementById('info-panel');
-            if (infoPanel) infoPanel.style.display = 'none';
-            closeDef();
-        });
-
-        map.on('zoomend', () => {
-            const z = map.getZoom();
-            if (z >= EUROPE_MIN_ZOOM) {
-                if (!map.hasLayer(europePolygonsLayer)) map.addLayer(europePolygonsLayer);
-                if (!map.hasLayer(europeCentroidsLayer)) map.addLayer(europeCentroidsLayer);
-            } else {
-                if (map.hasLayer(europeCentroidsLayer)) map.removeLayer(europeCentroidsLayer);
-                if (map.hasLayer(europePolygonsLayer)) map.removeLayer(europePolygonsLayer);
-            }
-            
-            setTimeout(() => {
-                if (map.hasLayer(pointsLayer)) pointsLayer.bringToFront();
-                if (map.hasLayer(europeCentroidsLayer)) europeCentroidsLayer.bringToFront();
-            }, 10);
-        });
-    </script>
-</body></html>
+    map.on('click', () => {
+      const infoPanel = document.getElementById('info-panel');
+      if (infoPanel) infoPanel.style.display = 'none';
+      closeDef();
+    });
+    
+    map.on('zoomend', () => {
+      const z = map.getZoom();
+      if (z >= EUROPE_MIN_ZOOM) {
+        if (!map.hasLayer(europePolygonsLayer)) map.addLayer(europePolygonsLayer);
+        if (!map.hasLayer(europeCentroidsLayer)) map.addLayer(europeCentroidsLayer);
+      } else {
+        if (map.hasLayer(europeCentroidsLayer)) map.removeLayer(europeCentroidsLayer);
+        if (map.hasLayer(europePolygonsLayer)) map.removeLayer(europePolygonsLayer);
+      }
+      
+      setTimeout(() => {
+        if (map.hasLayer(pointsLayer)) pointsLayer.bringToFront();
+        if (map.hasLayer(europeCentroidsLayer)) europeCentroidsLayer.bringToFront();
+      }, 10);
+    });
+</script>
+</body>
+</html>
