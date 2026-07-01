@@ -7,7 +7,7 @@ This repository gives acccess to an interactive map showcasing a collection of s
 
 > **ERTLEN D., BONHAGE A., BORG E., ECKMEIER E., FANTA V., HURAJTOVÁ N., JACKOVIČOVÁ J., KELLER B., KERHOUANT E., LATOCHA-WITES A., LE VOGUER N., LIESKOVSKÝ J., RIEZNER J. (2026).** *Former field relics across temperate Europe: a review...* 
 
-Link to the map : 
+Link to the map : https://borg-e.github.io/Former-Fields-Relict-Study/
 
 ---
 
