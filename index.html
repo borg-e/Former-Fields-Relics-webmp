@@ -128,7 +128,6 @@
     .info-auteur-lien { color: #094cb2; font-weight: 500; text-decoration: none; transition: color 0.2s ease; }
     .info-auteur-lien:hover { color: #00419d; text-decoration: underline; }
 
-    /* Range slider styling */
     input[type=range] {
         -webkit-appearance: none;
         width: 100%;
@@ -339,7 +338,6 @@
     
     const baseMaps = {
       "Satellite": esriWorldImagery
-      // "Light Grey (Carto)": cartoLight // Optionnel, si tu as défini cartoLight ailleurs
     };
     
     L.control.layers(baseMaps, null, { position: 'topright' }).addTo(map);
@@ -350,15 +348,15 @@
     const europePolygonsLayer = L.layerGroup();
     
     const europePolygonsGeoJSON = L.geoJSON(null, {
-      pane: 'polygonsPane', // <-- Assure-toi que "renderer: polyRenderer" est bien supprimé !
+      pane: 'polygonsPane', 
       filter: (feature) => feature.geometry && feature.geometry.type !== 'Point',
       style: (f) => {
         const cat = getCategory(f.properties.landform);
         const isStoneWall = cat === 'stone_wall';
         return { 
-          color: isStoneWall ? "#6c5da3" : "#ffffff", // Bordure violette pour les murs, blanche pour le reste
+          color: isStoneWall ? "#6c5da3" : "#ffffff", 
           weight: 0.9, 
-          fillColor: isStoneWall ? "url(#stone-wall-pattern)" : colors[cat], // Application du motif
+          fillColor: isStoneWall ? "url(#stone-wall-pattern)" : colors[cat], 
           fillOpacity: isStoneWall ? 0.8 : 0.5 
         };
       },
@@ -529,7 +527,7 @@
     }
 
     const genStudiesLayer = L.geoJSON(null, {
-      pane: 'polygonsPane', // <-- Assure-toi que "renderer: polyRenderer" est bien supprimé !
+      pane: 'polygonsPane', 
       filter: (feature) => feature.geometry && feature.geometry.type !== 'Point',
       style: (f) => {
         const cat = getCategory(f.properties.landform);
@@ -539,7 +537,7 @@
         return { 
           color: baseColor, 
           weight: 1.5, 
-          fillColor: isStoneWall ? "url(#stone-wall-pattern)" : baseColor, // Application du motif
+          fillColor: isStoneWall ? "url(#stone-wall-pattern)" : baseColor,
           fillOpacity: isStoneWall ? 0.7 : 0.7, 
           dashArray: '20' 
         };
@@ -770,7 +768,7 @@
       if (countEl) countEl.innerText = visibleCount.toLocaleString() + " SITES";
 
       if (scatterChart) drawScatterPlot();
-      pointsLayer.bringToFront(); // Ensure points are always clickable
+      pointsLayer.bringToFront(); 
     }
 
     L.control.scale({
@@ -811,7 +809,7 @@
           const cat = getCategory(props.landform);
           const alt =  parseFloat(props._jalti) || 0;
           
-          // Code corrigé
+    
           const icon = L.divIcon({
                         className: 'custom-diamond-wrapper',
                         html: `<div class="diamond-marker" style="background-color: ${colors[cat]};"></div>`,
@@ -856,7 +854,7 @@
                 });
             }
       
-      // TRAITEMENT AJOUTÉ POUR LES DONNÉES EUROPE
+ 
       if (sources[2]) {
         europePolygonsGeoJSON.addData(sources[2]);
         loadEuropeCentroids(sources[2]);
