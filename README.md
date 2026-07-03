@@ -1,7 +1,7 @@
 
 
 
-# Former Fields Relict Review
+# Former Fields Relics Review
 
 This repository gives acccess to an interactive map showcasing a collection of studies conducted across Europe on Former Fields Relicts. The map was compiled from the literature reviewed in the following study :
 
