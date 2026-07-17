@@ -362,9 +362,15 @@
     esriWorldImagery.addTo(map);
 
     const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors' });
+
+  const ignOrtho = L.tileLayer('https://data.geopf.ign.fr/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=ORTHOIMAGERY.ORTHOPHOTOS&STYLE=normal&FORMAT=image/jpeg&TILEMATRIXSET=PM&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}', { 
+      attribution: 'Carte &copy; IGN' 
+    });
+  
     const baseMaps = {
       "Satellite": esriWorldImagery, 
-      "OpenStreetMap": osm
+      "OpenStreetMap": osm, 
+      "ign ortho"; ignOrtho
       
     };
     
