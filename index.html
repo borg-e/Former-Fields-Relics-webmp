@@ -219,16 +219,9 @@
 <div class="bg-white/95 backdrop-blur-sm p-8 max-w-2xl w-full mx-4 shadow-xl border border-surface-variant rounded-none relative">
 <h2 class="font-headline-lg text-2xl mb-4 text-on-surface">Former Fields Relicts: European synthesis Map</h2>
 <p class="font-body-md text-on-surface-variant mb-6 text-sm leading-relaxed">
-        Reconstructing the history of land use and thereby assessing the ecological legacies associated with past practices, is a key prerequisite for effective environmental governance (Ellis, 2021). 
-  Former agricultural landforms —often organised within former field systems (FFS)— are widely preserved across Europe. 
-  Among the most common micro-topographies described in the literature are <strong> lynchets, terraces, ridge and furrow systems, stone walls, and headland ridges</strong> . 
-  LiDAR has enabled numerous regional studies on landscape history and heritage, including vast areas now covered by forest.
-  On the other hand, geoarchaeological surveys have provided an initial, though still incomplete, chronological framework. 
-  This study encompasses the temperate transition zone where oceanic and continental influences meet. 
-  The scope also aims to follow the historical diffusion of the plough, tracing its path from its Central European origins to Alsace and Lorraine (Haudricourt and Delamarre, 1988).
-  Furthermore, FFR research extends to the North-Western French open fields, from the Paris Basin to the Beauce region, to ensure a comprehensive analysis of these traditional agricultural landscapes.
+        Reconstructing the history of land use, and thereby assessing the ecological legacies associated with past practices, is a key prerequisite for effective environmental governance (Ellis, 2021). Former agricultural landforms —often organized within former field systems (FFS)— are widely preserved across Europe. Among the most common micro-topographies described in the literature are lynchets, terraces, ridge-and-furrow systems, stone walls and headland ridges. LiDAR has enabled numerous regional studies on landscape history and heritage, including vast areas now covered by forest. On the other hand, geoarchaeological surveys have provided an initial, though still incomplete, chronological framework. This study encompasses the temperate transition zone where oceanic and continental influences met. The scope also aims to follow the historical diffusion of the plow, tracing its path from its Central European origins to Alsace and Lorraine (Haudricourt and Delamarre, 1988). Furthermore, it extends to the North-Western French openfields, spanning from the Paris Basin to the Beauce region, to ensure a comprehensive analysis of these traditional agricultural landscapes.
 </p>
-  <div class="flex justify-end">
+<div class="flex justify-end">
 <button class="bg-primary text-on-primary px-6 py-2 uppercase tracking-wide text-sm font-label-md hover:bg-on-primary-fixed-variant transition-colors rounded-none" onclick="document.getElementById('welcome-modal').style.display='none'">
           Explore Map
         </button>
@@ -248,8 +241,8 @@
 <span class="legend-text" onclick="showDefinition('headland_ridges')">Headland ridges</span>
 </div>
 <div class="legend-item">
-<span class="color-box" onclick="toggleFilter('ridge_and_furrow', event)" style="background:#7aac73"></span>
-<span class="legend-text" onclick="showDefinition('ridge_and_furrow')">Ridge and furrow</span>
+<span class="color-box" onclick="toggleFilter('ridge_and_furrows', event)" style="background:#7aac73"></span>
+<span class="legend-text" onclick="showDefinition('ridge_and_furrows')">Ridge and furrows</span>
 </div>
 <div class="legend-item">
 <span class="color-box" onclick="toggleFilter('lynchets_terraces', event)" style="background:#a4b8ca"></span>
@@ -360,15 +353,9 @@
       attribution: 'Tiles &copy; Esri &mdash; Source: Esri...'
     });
     esriWorldImagery.addTo(map);
-
-  const topoLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
-  attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ, TomTom, Intermap, iPC, USGS, FAO, NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community'
-});
-topoLayer.addTo(map);
     
     const baseMaps = {
-      "Satellite": esriWorldImagery, 
-      "Topo ": topolayer
+      "Satellite": esriWorldImagery
       
     };
     
