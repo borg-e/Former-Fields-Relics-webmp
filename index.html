@@ -816,23 +816,6 @@
       });
     }
     
-    function toggleAnalysisPanel() {
-      const content = document.getElementById('analysis-content');
-      const icon = document.getElementById('analysis-toggle-icon');
-      
-      if(content.classList.contains('hidden')) {
-        content.classList.remove('hidden');
-        icon.innerText = 'expand_less';
-        if (!scatterChart && allData.length > 0) drawScatterPlot();
-      } else {
-        content.classList.add('hidden');
-        icon.innerText = 'expand_more';
-        if (isExpanded) {
-          toggleAnalysisSize();
-        }
-      }
-    }
-    
     function toggleAnalysisSize() {
       const content = document.getElementById('analysis-content');
       const icon = content.querySelector('.material-symbols-outlined');
@@ -851,11 +834,10 @@
           drawScatterPlot();
         }
       }, 50);
-    }
+    } // <-- L'accolade manquante était ici
 
     function updateUI(limit) {
       limit = parseFloat(limit);
-
 
       allData.forEach(d => {
         const layer = d.isEurope ? europeCentroidsLayer : pointsLayer;
@@ -868,22 +850,22 @@
 
       allPolygons.forEach(p => {
         const shouldShow = activeFilters[p.cat];
-        const isShown = p.parent.hasLayer(p.layer); 
+        const isShown = p.parent ? p.parent.hasLayer(p.layer) : map.hasLayer(p.layer); 
         
         if (shouldShow && !isShown) {
-          p.parent.addLayer(p.layer); 
+          if (p.parent) p.parent.addLayer(p.layer); 
+          else map.addLayer(p.layer);
         } else if (!shouldShow && isShown) {
-          p.parent.removeLayer(p.layer); 
+          if (p.parent) p.parent.removeLayer(p.layer); 
+          else map.removeLayer(p.layer);
         }
       });
 
-    
       const visibleCount = allData.filter(d => activeFilters[d.cat] && d.alt <= limit).length;
       const countEl = document.getElementById('count-visible');
       if (countEl) countEl.innerText = visibleCount.toLocaleString() + " SITES";
 
       if (scatterChart) drawScatterPlot();
-      pointsLayer.bringToFront();
     }
 
     L.control.scale({
@@ -923,7 +905,6 @@
           const lat = feature.geometry.coordinates[1];
           const cat = getCategory(props.landform);
           const alt =  parseFloat(props._jalti) || 0;
-          
           
           const icon = L.divIcon({
                         className: 'custom-diamond-wrapper',
@@ -968,7 +949,6 @@
                     allData.push({ m, alt, cat, row: props });
                 });
             }
-      
       
       if (sources[2]) {
         europePolygonsGeoJSON.addData(sources[2]);
