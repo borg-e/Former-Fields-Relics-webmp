@@ -360,9 +360,11 @@
       attribution: 'Tiles &copy; Esri &mdash; Source: Esri...'
     });
     esriWorldImagery.addTo(map);
-    
+
+    const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors' });
     const baseMaps = {
-      "Satellite": esriWorldImagery
+      "Satellite": esriWorldImagery, 
+      "OpenStreetMap": osm
       
     };
     
