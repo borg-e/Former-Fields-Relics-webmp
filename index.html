@@ -2,7 +2,7 @@
 <html lang="en" style="">
 <head>
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-  <title>Former Fields System</title> 
+  <title>Former Field System</title> 
   <meta charset="utf-8"/>   
   <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
   <link href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" rel="stylesheet"/>
@@ -217,17 +217,10 @@
 </svg>
 <div class="fixed inset-0 z-[4000] flex items-center justify-center bg-black/40 backdrop-blur-sm" id="welcome-modal">
 <div class="bg-white/95 backdrop-blur-sm p-8 max-w-2xl w-full mx-4 shadow-xl border border-surface-variant rounded-none relative">
-<h2 class="font-headline-lg text-2xl mb-4 text-on-surface">Former Field Relicts: European synthesis Map</h2>
+<h2 class="font-headline-lg text-2xl mb-4 text-on-surface">Former Fields Relicts: European synthesis Map</h2>
 <p class="font-body-md text-on-surface-variant mb-6 text-sm leading-relaxed">
-        Reconstructing the history of land use and thereby assessing the ecological legacies associated with past practices, is a key prerequisite for effective environmental governance (Ellis, 2021). 
-  Former agricultural landforms —often organised within former field systems (FFS)— are widely preserved across Europe. 
-  Among the most common micro-topographies described in the literature are <strong>lynchets, terraces, ridge and furrow systems, stone walls, and headland ridges </strong>.
-  LiDAR has enabled numerous regional studies on landscape history and heritage, including vast areas now covered by forest.
-  On the other hand, geoarchaeological surveys have provided an initial, though still incomplete, chronological framework. 
-  This study encompasses the temperate transition zone where oceanic and continental influences meet. 
-  The scope also aims to follow the historical diffusion of the plough, tracing its path from its Central European origins to Alsace and Lorraine (Haudricourt and Delamarre, 1988). 
-  Furthermore, FFR research extends to the North-Western French open fields, from the Paris Basin to the Beauce region, to ensure a comprehensive analysis of these traditional agricultural landscapes.
-  </p>
+        Reconstructing the history of land use, and thereby assessing the ecological legacies associated with past practices, is a key prerequisite for effective environmental governance (Ellis, 2021). Former agricultural landforms —often organized within former field systems (FFS)— are widely preserved across Europe. Among the most common micro-topographies described in the literature are lynchets, terraces, ridge-and-furrow systems, stone walls and headland ridges. LiDAR has enabled numerous regional studies on landscape history and heritage, including vast areas now covered by forest. On the other hand, geoarchaeological surveys have provided an initial, though still incomplete, chronological framework. This study encompasses the temperate transition zone where oceanic and continental influences met. The scope also aims to follow the historical diffusion of the plow, tracing its path from its Central European origins to Alsace and Lorraine (Haudricourt and Delamarre, 1988). Furthermore, it extends to the North-Western French openfields, spanning from the Paris Basin to the Beauce region, to ensure a comprehensive analysis of these traditional agricultural landscapes.
+</p>
 <div class="flex justify-end">
 <button class="bg-primary text-on-primary px-6 py-2 uppercase tracking-wide text-sm font-label-md hover:bg-on-primary-fixed-variant transition-colors rounded-none" onclick="document.getElementById('welcome-modal').style.display='none'">
           Explore Map
@@ -361,25 +354,11 @@
     });
     esriWorldImagery.addTo(map);
     
-    const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
-      attribution: '&copy; OpenStreetMap contributors' 
-    });
-
-
-    const openTopoMap = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
-      maxZoom: 17,
-      attribution: 'Map data: &copy; OpenStreetMap contributors, SRTM | Map style: &copy; OpenTopoMap'
-    });
-    
- 
-    esriWorldImagery.addTo(map); 
-    
-
     const baseMaps = {
-      "Satellite": esriWorldImagery,
-      "OpenStreetMap": osm,
-      "Topographie (Relief)": openTopoMap
+      "Satellite": esriWorldImagery
+      
     };
+    
     L.control.layers(baseMaps, null, { position: 'topright' }).addTo(map);
     L.control.zoom({ position: 'topright' }).addTo(map);
 
