@@ -490,7 +490,7 @@
         `;
       }
 
-      const site = props.site_j ? props.site_j.toString().replace(/_/g, ' ') : 'N/A';
+      const site = props.site__j ? props.site__j.toString().replace(/_/g, ' ') : 'N/A';
       const country = props.country ? props.country.toString().replace(/_/g, ' ') : '';
       
       if (site.toLowerCase() !== 'n/a') {
@@ -533,7 +533,7 @@
         if (isExpanded) toggleAnalysisSize();
       }
 
-      // Initialisation du carrousel
+     
       currentCarouselCategory = category;
       currentCarouselIndex = 0;
       let carouselHTML = '';
@@ -589,7 +589,7 @@
 
       currentCarouselIndex += step;
       
-      // Boucle infinie
+      
       if (currentCarouselIndex >= def.images.length) currentCarouselIndex = 0;
       if (currentCarouselIndex < 0) currentCarouselIndex = def.images.length - 1;
 
