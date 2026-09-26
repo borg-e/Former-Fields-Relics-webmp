@@ -90,7 +90,7 @@
     #map { position: absolute; top: 0; left: 0; height: 100vh; width: 100vw; z-index: 0; }
   </style>
   <style data-purpose="ui-elements">
-    /* Clean Custom UI Elements */
+
     .color-box { width: 16px; height: 16px; margin-right: 12px; cursor: pointer; transition: opacity 0.2s, transform 0.1s; border: 1px solid rgba(0,0,0,0.1); flex-shrink: 0; border-radius: 0; }
     .color-box.disabled { opacity: 0.2; }
     .color-box:hover { transform: scale(1.1); }
@@ -100,7 +100,7 @@
     .legend-item { display: flex; align-items: center; margin: 8px 0; padding: 4px; transition: background 0.2s; }
     .legend-item:hover { background: #f5f3f4; }
     
-    /* Panneau Définition */
+ 
     #definition-panel { 
         top: 20px; right: -400px; width: 350px; max-height: calc(100vh - 40px);
         background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(4px);
@@ -128,7 +128,7 @@
     .info-auteur-lien { color: #094cb2; font-weight: 500; text-decoration: none; transition: color 0.2s ease; }
     .info-auteur-lien:hover { color: #00419d; text-decoration: underline; }
 
-    /* Range slider styling */
+
     input[type=range] {
         -webkit-appearance: none;
         width: 100%;
@@ -512,7 +512,7 @@
         if (isExpanded) toggleAnalysisSize();
       }
 
-      // Initialisation du carrousel
+  
       currentCarouselCategory = category;
       currentCarouselIndex = 0;
       let carouselHTML = '';
@@ -568,7 +568,7 @@
 
       currentCarouselIndex += step;
       
-      // Boucle infinie
+    
       if (currentCarouselIndex >= def.images.length) currentCarouselIndex = 0;
       if (currentCarouselIndex < 0) currentCarouselIndex = def.images.length - 1;
 
